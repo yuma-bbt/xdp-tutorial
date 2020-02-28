@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "icmp.h": "c",
+        "bpf_endian.h": "c"
+    }
+}
