@@ -36,7 +36,7 @@ static __always_inline int parse_ethhdr(struct hdr_cursor *nh,
 	/* Byte-count bounds check; check if current pointer + size of header
 	 * is after data_end.
 	 */
-	if (nh->pos + 1 > data_end)
+	if (nh->pos + hdrsize > data_end)
 		return -1;
 
 	nh->pos += hdrsize;
@@ -45,12 +45,22 @@ static __always_inline int parse_ethhdr(struct hdr_cursor *nh,
 	return eth->h_proto; /* network-byte-order */
 }
 
+
 /* Assignment 2: Implement and use this */
-/*static __always_inline int parse_ip6hdr(struct hdr_cursor *nh,
+static __always_inline int parse_ip6hdr(struct hdr_cursor *nh,
 					void *data_end,
 					struct ipv6hdr **ip6hdr)
 {
-}*/
+	struct ipv6hdr * ip6h =  nh->pos;
+	if (ip6h + 1 > data_end)
+		return -1;
+
+	nh->pos = ip6h +1 ;
+	*ip6hdr = ip6h;
+
+	return ip6h->nexthdr;
+
+}
 
 /* Assignment 3: Implement and use this */
 /*static __always_inline int parse_icmp6hdr(struct hdr_cursor *nh,
@@ -65,6 +75,8 @@ int  xdp_parser_func(struct xdp_md *ctx)
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
 	struct ethhdr *eth;
+	struct ipv6hdr *ip6hdr;
+	int ip_type;
 
 	/* Default action XDP_PASS, imply everything we couldn't parse, or that
 	 * we don't want to deal with, we just pass up the stack and let the
@@ -88,6 +100,14 @@ int  xdp_parser_func(struct xdp_md *ctx)
 		goto out;
 
 	/* Assignment additions go below here */
+	ip_type = parse_ip6hdr(&nh,data_end,&ip6hdr);
+	if (ip_type != IPPROTO_ICMPV6)
+		{
+			goto out;
+		}
+	else {
+		goto out;
+	}
 
 	action = XDP_DROP;
 out:
