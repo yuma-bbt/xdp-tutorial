@@ -4,12 +4,18 @@
 #include <linux/in.h>
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
+
+
+#include "../common/parsing_helpers.h"
+#include "../common/rewrite_helpers.h"
+
 #include <linux/ip.h>
 #include <linux/ipv6.h>
 #include <linux/icmp.h>
 #include <linux/icmpv6.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
+
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
 /* Defines xdp_stats_map from packet04 */
@@ -168,6 +174,12 @@ int  xdp_parser_func(struct xdp_md *ctx)
 			&& icmp_type == ICMPV6_ECHO_REQUEST) { 
 				echo_reply = ICMPV6_ECHO_REPLY;
 				}
+				else if (eth_type == bpf_htons(ETH_P_IPV6)
+				&& icmp_type == ICMPV6_ECHO_REQUEST) { 
+					swap_src_dst_ipv6(ipv6hdr);
+					echo_reply = ICMPV6_ECHO_REPLY;
+				}
+				
 				else{
 					goto out;
 				}
